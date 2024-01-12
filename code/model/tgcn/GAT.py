@@ -5,7 +5,7 @@ from .myutils import BertLinear, BertLayerNorm, gelu
 
 class GAT(torch.nn.Module):
     def __init__(self, in_channel=768, out_channel=256, label_num=6):
-        super(GAT2, self).__init__()
+        super(GAT, self).__init__()
         self.in_ch = in_channel
         self.out_ch = out_channel
         self.label_num = label_num
@@ -49,35 +49,3 @@ class GAT(torch.nn.Module):
 
         h = h + h_left + h_right + h_up + h_down
         return h
-
-class Simi(torch.nn.Module):
-    def __init__(self, mlp_hidden_size=300):
-        super(Simi, self).__init__()
-        self.activation = torch.nn.GELU()
-        mlp_size = mlp_hidden_size
-        dropout = 0.5
-        self.head_U3 = BertLinear(input_size=mlp_size * 3,
-                                  output_size=mlp_size,
-                                  activation=self.activation,
-                                  dropout=dropout)
-        self.tail_U3 = BertLinear(input_size=mlp_size * 3,
-                                  output_size=mlp_size,
-                                  activation=self.activation,
-                                  dropout=dropout)
-
-    def forward(self, h_a, h_t, aspect_simi, term_simi):  # [B,L,L,dim]
-        h_a1 = self.atten_span3(h_a, aspect_simi, self.head_U3)
-        h_t1 = self.atten_span3(h_t, term_simi, self.tail_U3)
-        return h_a1, h_t1
-
-    def atten_span3(self, h_a, aspect_simi, mlp):  # [B,L,d],[B,L]
-        batch, lens, dim = h_a.shape
-        # h_a0 = h_a
-        h_a = h_a * aspect_simi.unsqueeze(2).expand_as(h_a)
-        padding = torch.zeros([batch, 1, dim]).cuda()  # [B,1,dim]
-        h_a_left = torch.cat([padding, h_a], dim=1)[:, :-1, :]  # [B,L+1,dim]
-        h_a_right = torch.cat([h_a, padding], dim=1)[:, 1:, :]
-
-        h_a1 = torch.cat([h_a_left, h_a, h_a_right], dim=-1)
-        h_a1 = mlp(h_a1)
-        return h_a1
