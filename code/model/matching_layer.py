@@ -35,7 +35,7 @@ class MatchingLayer(nn.Module):
         return all_pred, pred_label, pred_maxlen
 
     def input_encoding(self, batch_size, pairs, maxlen, table, seq):
-        input_ret = torch.zeros([batch_size, maxlen, xxx*3]).to('cuda')
+        input_ret = torch.zeros([batch_size, maxlen, self.config.hidden_size*3]).to('cuda')
         for i in range(batch_size):
             j = 0
             for (s0, e0, s1, e1) in pairs[i]:
