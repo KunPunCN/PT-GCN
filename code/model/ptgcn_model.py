@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from transformers import BertModel, BertPreTrainedModel
-from .table import TableEncoder
+from .table import TableEncoder, Ptgcn
 from .matching_layer import MatchingLayer
 from torch.nn import functional as F
 from torch.autograd import Function
@@ -12,8 +12,9 @@ class BDTFModel(BertPreTrainedModel):
 
         self.bert = BertModel(config)
         self.table_encoder = TableEncoder(config)
-        self.table_encoder2 = TableEncoder(config)
-        self.table_encoder3 = TableEncoder(config)
+        self.gcn1 = Ptgcn(config)
+        self.gcn2 = Ptgcn(config)
+        self.gcn3 = Ptgcn(config)
         self.inference = InferenceLayer(config)
         self.matching = MatchingLayer(config)
 
@@ -49,9 +50,10 @@ class BDTFModel(BertPreTrainedModel):
         as1, as2, as3, ts1, ts2, ts3 = self.get_atten(outputs_at_mask, seq, attention_mask)
         seq = seq * (attention_mask.unsqueeze(-1))
 
-        table1 = self.table_encoder(seq, attention_mask, as1, ts1)
-        table2 = self.table_encoder2(seq, attention_mask, as2, ts2)
-        table3 = self.table_encoder3(seq, attention_mask, as3, ts3)
+        table = self.table_encoder(seq)
+        table1 = self.gcn1(table, as1, ts1)
+        table2 = self.gcn2(table, as2, ts2)
+        table3 = self.gcn3(table, as3, ts3)
         table1 = torch.cat([table1,table2,table3], dim=-1)
 
         output = self.inference(table1, attention_mask, table_labels_S, table_labels_E)
