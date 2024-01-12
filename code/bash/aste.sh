@@ -41,8 +41,8 @@ gradient_clip_val=1
 warmup_steps=100
 weight_decay=0.01
 precision=16
-batch_size=2
-batch_size2=1
+batch_size=4
+eval_batch_size=1
 data_dir="../data/ASTE-V2/${dataset}"
 
 #${CUDA_IDS}
@@ -54,7 +54,7 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 aste_train_prompt_ada.py \
   --output_dir ../output/ASTE/${dataset}/ \
   --learning_rate ${learning_rate}e-5 \
   --train_batch_size ${batch_size} \
-  --eval_batch_size ${batch_size2} \
+  --eval_batch_size ${eval_batch_size} \
   --seed $seed \
   --warmup_steps ${warmup_steps} \
   --lr_scheduler linear \
