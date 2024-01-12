@@ -18,10 +18,19 @@ class TableEncoder(nn.Module):
         else:
             self.seq2mat = Seq2Mat(config)
 
+
+    def forward(self, seq):
+        table = self.seq2mat(seq, seq)
+
+        return table
+
+class Ptgcn(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+
         self.gat = GAT()
 
-    def forward(self, seq, mask, a_s, o_s):
-        table = self.seq2mat(seq, seq)
+    def forward(self, table, a_s, o_s):
         table = self.gat(table, a_s, o_s)
 
         return table
